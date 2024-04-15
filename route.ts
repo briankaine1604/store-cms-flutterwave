@@ -1,5 +1,5 @@
 /**Routes that are publicly accessible */
-export const publicRoutes = ["/", "/auth/new-verification"];
+export const publicRoutes = ["/auth/new-verification", "/api/:path*"];
 
 export const authRoutes = [
   "/auth/login",
@@ -8,7 +8,5 @@ export const authRoutes = [
   "/auth/reset",
   "/auth/new-password",
 ];
-
-export const apiAuthPrefix = "/api/auth";
 
 export const DEFAULT_LOGIN_REDIRECT = "/";

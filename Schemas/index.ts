@@ -1,33 +1,8 @@
 import * as z from "zod";
 import { UserRole } from "@prisma/client";
 
-export const CategorySchema = z.object({
+export const StoreSchema = z.object({
   name: z.string().min(1),
-  billboardId: z.string().min(1),
-});
-
-export const ProductSchema = z.object({
-  name: z.string().min(1),
-  categoryId: z.string().min(1),
-  subcategoryId: z.string().optional(),
-  sizeId: z.array(z.string()),
-  colorId: z.string().min(1),
-  price: z.coerce.number().min(1),
-  brand: z.string().min(1),
-  isFeatured: z.boolean().default(false).optional(),
-  isArchived: z.boolean().default(false).optional(),
-  images: z.object({ url: z.string() }).array(),
-});
-
-export const SubcategorySchema = z.object({
-  name: z.string().min(1),
-  billboardId: z.string().min(1),
-  categoryId: z.string().min(1),
-});
-
-export const ColorSchema = z.object({
-  name: z.string().min(1),
-  value: z.string().min(1),
 });
 
 export const SizeSchema = z.object({

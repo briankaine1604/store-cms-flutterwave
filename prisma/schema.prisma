@@ -4,20 +4,151 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+model Store{
+  id      String  @id @default(uuid())
+  name    String
+  userId  String
+  billboards Billboard[] @relation("storeToBillboard")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  category Category[] @relation("StoreToCategory")
+  size Size[] @relation("StoreToSize")
+  color Color[] @relation("StoreToColor")
+  product Product[] @relation("StoreToProduct")
+  order Order[] @relation("StoreToOrder")
 }
 
+model Billboard{
+  id    String @id() @default(uuid())
+  storeId String
+  store Store @relation("storeToBillboard",fields: [storeId], references: [id])
+  label String
+  imgUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  categories Category[]
 
+  @@index([storeId])
+}
 
+model Category{
+  id String @id @default(uuid())
+  storeId String
+  store Store @relation("StoreToCategory", fields: [storeId], references: [id])
+  billboardId String
+  billboard Billboard @relation(fields: [billboardId],references: [id])
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product Product[] @relation("CategoryToProduct")
 
+  @@index([storeId])
+  @@index([billboardId])
+}
 
+model Size {
+  id String @id @default(uuid())
+  storeId String
+  store Store @relation("StoreToSize", fields: [storeId], references: [id])
+  name String
+  value String
+  product ProductSizes[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([storeId])
+}
 
+model Color {
+  id String @id @default(uuid())
+  storeId String
+  store Store @relation("StoreToColor", fields: [storeId], references: [id])
+  name String
+  value String
+  product Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([storeId])
+}
+
+model Product {
+  id String @id @default(uuid())
+  storeId String
+  categoryId String
+  store Store @relation("StoreToProduct", fields: [storeId], references: [id])
+  category Category @relation("CategoryToProduct", fields: [categoryId], references: [id] )
+  name String
+  price Decimal
+  isFeatured Boolean @default(false)
+  isArchived Boolean @default(false)
+  colorId String
+  sizes  ProductSizes[]
+   color Color @relation(fields: [colorId], references: [id])
+   images Image[]
+   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orderItems OrderItem[] @relation()
+
+  @@index([storeId])
+  @@index([categoryId])
+   @@index([colorId])
+}
+
+model ProductSizes{
+  product Product @relation(fields: [productId], references: [id])
+  productId String   
+  size Size @relation(fields: [sizeId], references: [id])
+  sizeId String 
+
+  @@id([sizeId,productId])
+  @@index([productId])
+  @@index([sizeId])
+}
+
+model Image {
+  id String @id @default(uuid())
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url String
+createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([productId])
+}
+
+model Order{
+  id String @id @default(uuid())
+  storeId String
+  store Store @relation("StoreToOrder",fields: [storeId],references: [id])
+  orderItems OrderItem[]
+  isPaid Boolean @default(false)
+  phone String @default("")
+  address String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+}
+
+model OrderItem{
+  id String @id @default(uuid())
+  orderId String
+  order Order @relation(fields: [orderId],references: [id])
+  productId String?
+  product Product? @relation(fields: [productId],references: [id])
+  quantity Int
+
+  @@index([orderId])
+  @@index([productId])
+}
 
 enum UserRole{
   ADMIN
@@ -25,7 +156,7 @@ enum UserRole{
 }
 
 model User{
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(uuid())
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -40,28 +171,29 @@ model User{
 }
 
 model Account {
- id    String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId             String @db.ObjectId
+  id String @id @default(uuid())
+  userId             String 
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String?  @db.String
-  access_token       String?  @db.String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
   expires_at         Int?
   token_type         String?
   scope              String?
-  id_token           String?  @db.String
+  id_token           String? @db.Text
   session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+ @@index([userId])
   @@unique([provider, providerAccountId])
 }
 
 model VerificationToken{
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(uuid())
   email String
-  token String @unique
+  token String @unique 
   expires DateTime
 
 
@@ -69,7 +201,7 @@ model VerificationToken{
 }
 
 model PasswordResetToken{
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(uuid())
   email String
   token String @unique
   expires DateTime
@@ -78,17 +210,17 @@ model PasswordResetToken{
 }
 
 model twoFactorToken{
-  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(uuid())
   email String
-  token String @unique
+  token String @unique 
   expires DateTime
 
   @@unique([email,token])
 }
 
 model TwoFactorConfirmation{
-id    String  @id @default(auto()) @map("_id") @db.ObjectId
-userId String @db.ObjectId   
+id String @id @default(uuid())
+userId String 
 user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
 @@unique([userId])
