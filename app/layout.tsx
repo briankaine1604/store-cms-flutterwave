@@ -26,7 +26,7 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <html lang="en">
+      <html lang="en" className="antialiased">
         <body className={inter.className}>
           <ModalProvider />
           <div className="h-full w-full">{children}</div>

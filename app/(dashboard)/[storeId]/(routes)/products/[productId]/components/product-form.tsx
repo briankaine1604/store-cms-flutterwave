@@ -1,5 +1,4 @@
 "use client";
-import { deleteCloudinaryImage } from "@/actions/deleteCloudinaryImage";
 import { AlertModal } from "@/components/modals/alert-modal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,25 +24,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { UseOrigin } from "@/hooks/use-origin";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Category,
-  Color,
-  Image,
-  Product,
-  ProductSizes,
-  Size,
-} from "@prisma/client";
+import { Category, Color, Image, Product, Size } from "@prisma/client";
 import axios from "axios";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { FieldValues, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
 import * as z from "zod";
 
 interface ProductFormProps {
-  initialData?: (Product & { images: Image[]; sizes: ProductSizes[] }) | null;
+  initialData: (Product & { images: Image[] }) | null;
   colors: Color[];
   sizes: Size[];
   categories: Category[];
@@ -54,7 +45,7 @@ const formSchema = z.object({
   images: z.object({ url: z.string() }).array(),
   price: z.coerce.number().min(1),
   categoryId: z.string().min(1),
-  sizeIds: z.object({ productId: z.string(), sizeId: z.string() }).array(),
+  sizeId: z.string().min(1),
   colorId: z.string().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
@@ -81,17 +72,14 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData
-      ? {
-          ...initialData,
-          price: parseFloat(String(initialData?.price)),
-        }
+      ? { ...initialData, price: parseFloat(String(initialData?.price)) }
       : {
           name: "",
           images: [],
           price: 0,
           categoryId: "",
           colorId: "",
-          sizeIds: [],
+          sizeId: "",
           isFeatured: false,
           isArchived: false,
         },
@@ -100,34 +88,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { handleSubmit, control } = form;
 
   const onSubmit = async (data: ProductFormValues) => {
-    console.log("data:", data);
     try {
       setIsLoading(true);
-      let response;
       if (initialData) {
-        response = await axios.patch(
+        await axios.patch(
           `/api/${params.storeId}/products/${params.productId}`,
           data
         );
       } else {
-        response = await axios.post(`/api/${params.storeId}/products`, data);
+        await axios.post(`/api/${params.storeId}/products`, data);
       }
-      console.log("response:", response);
-      const productId = response.data.id;
-      console.log("productid:", productId);
-
-      console.log("data:", data);
-      await Promise.all(
-        data.sizeIds.map(
-          async (size: { productId: string; sizeId: string }) => {
-            await axios.patch(`/api/${params.storeId}/products/${productId}`, {
-              sizeId: size.sizeId,
-              productId: productId,
-            });
-          }
-        )
-      );
-
+      
       router.push(`/${params.storeId}/products`);
       router.refresh();
       toast.success(toastMessage);
@@ -142,7 +113,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     try {
       setIsLoading(true);
       await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-
       router.push(`/${params.storeId}/products`);
       router.refresh();
       toast.success("Product deleted");
@@ -152,39 +122,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setIsLoading(false);
       setOpen(false);
     }
-  };
-
-  const handleRemove = (
-    imageUrl: string,
-    field: FieldValues,
-    onChange: (value: any[]) => void
-  ) => {
-    const updatedValue = field.value.filter(
-      (image: { url: string }) => image.url !== imageUrl
-    );
-    onChange(updatedValue);
-    const parts = imageUrl.split("/");
-    const identifierWithExtension = parts[parts.length - 1];
-    const identifier = identifierWithExtension.split(".")[0];
-    deleteCloudinaryImage({ publicId: identifier });
-  };
-
-  const handleCheckboxChange = (
-    sizeId: string,
-    isChecked: boolean,
-    field: FieldValues,
-    onChange: (value: any) => void
-  ) => {
-    const currentSizes = field.value;
-    let updatedSizes: { productId: string; sizeId: string }[];
-    if (isChecked) {
-      updatedSizes = [...currentSizes, { productId: "", sizeId }];
-    } else {
-      updatedSizes = currentSizes.filter(
-        (size: ProductSizes) => size.sizeId !== sizeId
-      );
-    }
-    onChange(updatedSizes);
   };
 
   return (
@@ -224,14 +161,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     onChange={(url) =>
                       field.onChange([...field.value, { url }])
                     }
-                    onRemove={(url) => handleRemove(url, field, field.onChange)}
+                    onRemove={(url) =>
+                      field.onChange([
+                        ...field.value.filter((current) => current.url !== url),
+                      ])
+                    }
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-3 gap-8">
             <FormField
               control={control}
               name="name"
@@ -300,42 +241,34 @@ const ProductForm: React.FC<ProductFormProps> = ({
               )}
             />
             <FormField
-              control={form.control}
-              name="sizeIds"
+              control={control}
+              name="sizeId"
               render={({ field }) => (
-                <FormItem className="flex flex-col space-y-2 rounded-md border p-4">
-                  <FormLabel>Product Sizes</FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-5 gap-x-3">
+                <FormItem>
+                  <FormLabel>Size</FormLabel>
+                  <Select
+                    disabled={isLoading}
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          defaultValue={field.value}
+                          placeholder="Select a size"
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
                       {sizes.map((size) => (
-                        <div
-                          key={size.id}
-                          className="mr-4 mb-2 flex items-center"
-                        >
-                          <Checkbox
-                            checked={field.value.some(
-                              (s) => s.sizeId === size.id
-                            )}
-                            onCheckedChange={(isChecked: boolean) =>
-                              handleCheckboxChange(
-                                size.id,
-                                isChecked,
-                                field,
-                                field.onChange
-                              )
-                            }
-                          />
-                          <span className="ml-2">{size.name}</span>
-                        </div>
+                        <SelectItem key={size.id} value={size.id}>
+                          {size.name}
+                        </SelectItem>
                       ))}
-                    </div>
-                  </FormControl>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
-                  <div className="">
-                    <FormDescription>
-                      Select the sizes applicable to this product.
-                    </FormDescription>
-                  </div>
                 </FormItem>
               )}
             />

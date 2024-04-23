@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    PAYSTACK_PUBLIC_KEY: "pk_test_29e7f90af69f2a8a8b6d8eacd360a83e5026e547",
+    PAYSTACK_SECRET_KEY: "sk_test_70e5634610362bb83328a7253bc1c7367a32e094",
+  },
   images: {
     remotePatterns: [
       {
@@ -8,27 +12,6 @@ const nextConfig = {
         pathname: "**",
       },
     ],
-  },
-  async headers() {
-    return [
-      {
-        // matching all API routes
-        source: "/api/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "*" }, // replace this your actual origin
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET,DELETE,PATCH,POST,PUT",
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value:
-              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
-          },
-        ],
-      },
-    ];
   },
 };
 

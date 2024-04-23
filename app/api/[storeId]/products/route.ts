@@ -8,14 +8,13 @@ export async function POST(
 ) {
   try {
     const userId = await currentUserId();
-
     const body = await req.json();
     const {
       name,
       price,
+      sizeId,
       colorId,
       categoryId,
-      sizes,
       images,
       isFeatured,
       isArchived,
@@ -34,7 +33,10 @@ export async function POST(
       return new NextResponse("Image is required", { status: 400 });
     }
     if (!categoryId) {
-      return new NextResponse("Category Id required", { status: 400 });
+      return new NextResponse("Ctegory Id required", { status: 400 });
+    }
+    if (!sizeId) {
+      return new NextResponse("Size Id is required", { status: 400 });
     }
     if (!colorId) {
       return new NextResponse("Color Id is required", { status: 400 });
@@ -58,19 +60,18 @@ export async function POST(
       data: {
         name,
         price,
+        sizeId,
         categoryId,
         colorId,
         isArchived,
         isFeatured,
+
         storeId: params.storeId,
         images: {
           createMany: {
             data: [...images.map((image: { url: string }) => image)],
           },
         },
-      },
-      include: {
-        sizes: true,
       },
     });
 
@@ -88,7 +89,7 @@ export async function GET(
   try {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId") || undefined;
-    const sizeIds = searchParams.getAll("sizeId") || undefined;
+    const sizeId = searchParams.get("sizeId") || undefined;
     const colorId = searchParams.get("colorId") || undefined;
     const isFeatured = searchParams.get("isFeatured");
 
@@ -100,6 +101,7 @@ export async function GET(
       where: {
         storeId: params.storeId,
         categoryId,
+        sizeId,
         colorId,
         isFeatured: isFeatured ? true : undefined,
         isArchived: false,
@@ -108,7 +110,7 @@ export async function GET(
         images: true,
         category: true,
         color: true,
-        sizes: true,
+        size: true,
       },
       orderBy: {
         createdAt: "desc",

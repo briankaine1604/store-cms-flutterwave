@@ -17,6 +17,7 @@ generator client {
 model Store{
   id      String  @id @default(uuid())
   name    String
+  user User @relation(fields: [userId], references: [id])
   userId  String
   billboards Billboard[] @relation("storeToBillboard")
   createdAt DateTime @default(now())
@@ -26,6 +27,8 @@ model Store{
   color Color[] @relation("StoreToColor")
   product Product[] @relation("StoreToProduct")
   order Order[] @relation("StoreToOrder")
+
+  @@index([userId])
 }
 
 model Billboard{
@@ -62,7 +65,7 @@ model Size {
   store Store @relation("StoreToSize", fields: [storeId], references: [id])
   name String
   value String
-  product ProductSizes[]
+  product Product[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([storeId])
@@ -91,28 +94,20 @@ model Product {
   isFeatured Boolean @default(false)
   isArchived Boolean @default(false)
   colorId String
-  sizes  ProductSizes[]
+  size  Size @relation(fields: [sizeId], references: [id])
+  sizeId String 
    color Color @relation(fields: [colorId], references: [id])
    images Image[]
    createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orderItems OrderItem[] @relation()
 
+@@index([sizeId])
   @@index([storeId])
   @@index([categoryId])
    @@index([colorId])
 }
 
-model ProductSizes{
-  product Product @relation(fields: [productId], references: [id])
-  productId String   
-  size Size @relation(fields: [sizeId], references: [id])
-  sizeId String 
-
-  @@id([sizeId,productId])
-  @@index([productId])
-  @@index([sizeId])
-}
 
 model Image {
   id String @id @default(uuid())
@@ -131,9 +126,13 @@ model Order{
   orderItems OrderItem[]
   isPaid Boolean @default(false)
   phone String @default("")
+  email String @default("")
+  name String @default("")
+  state String @default("")
   address String @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  paystackReference  String @default("")
 
   @@index([storeId])
 }
@@ -166,6 +165,7 @@ model User{
   accounts      Account[]
   isTwoFactorEnabled Boolean @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
+  store Store[]
   // reviews Review[]
   
 }

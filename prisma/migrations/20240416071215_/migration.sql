@@ -71,26 +71,16 @@ CREATE TABLE `Product` (
     `price` DECIMAL(65, 30) NOT NULL,
     `isFeatured` BOOLEAN NOT NULL DEFAULT false,
     `isArchived` BOOLEAN NOT NULL DEFAULT false,
-    `sizeId` VARCHAR(191) NOT NULL,
     `colorId` VARCHAR(191) NOT NULL,
+    `sizeId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `Product_sizeId_idx`(`sizeId`),
     INDEX `Product_storeId_idx`(`storeId`),
     INDEX `Product_categoryId_idx`(`categoryId`),
-    INDEX `Product_sizeId_idx`(`sizeId`),
     INDEX `Product_colorId_idx`(`colorId`),
     PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `ProductToSize` (
-    `sizeId` VARCHAR(191) NOT NULL,
-    `productId` VARCHAR(191) NOT NULL,
-
-    INDEX `ProductToSize_sizeId_idx`(`sizeId`),
-    INDEX `ProductToSize_productId_idx`(`productId`),
-    PRIMARY KEY (`productId`, `sizeId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -153,12 +143,12 @@ CREATE TABLE `Account` (
     `type` VARCHAR(191) NOT NULL,
     `provider` VARCHAR(191) NOT NULL,
     `providerAccountId` VARCHAR(191) NOT NULL,
-    `refresh_token` VARCHAR(191) NULL,
-    `access_token` VARCHAR(191) NULL,
+    `refresh_token` TEXT NULL,
+    `access_token` TEXT NULL,
     `expires_at` INTEGER NULL,
     `token_type` VARCHAR(191) NULL,
     `scope` VARCHAR(191) NULL,
-    `id_token` VARCHAR(191) NULL,
+    `id_token` TEXT NULL,
     `session_state` VARCHAR(191) NULL,
 
     INDEX `Account_userId_idx`(`userId`),

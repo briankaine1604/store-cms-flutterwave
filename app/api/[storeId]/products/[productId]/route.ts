@@ -1,4 +1,3 @@
-import { deleteCloudinaryImage } from "@/actions/deleteCloudinaryImage";
 import { currentUserId } from "@/hooks/current-user-id";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
@@ -19,7 +18,7 @@ export async function GET(
       include: {
         images: true,
         color: true,
-        sizes: true,
+        size: true,
         category: true,
       },
     });
@@ -38,18 +37,16 @@ export async function PATCH(
   try {
     const userId = await currentUserId();
     const body = await req.json();
-
     const {
       name,
       price,
-      sizeIds,
+      sizeId,
       colorId,
       categoryId,
       images,
       isFeatured,
       isArchived,
     } = body;
-
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 401 });
     }
@@ -63,9 +60,9 @@ export async function PATCH(
       return new NextResponse("Image is required", { status: 400 });
     }
     if (!categoryId) {
-      return new NextResponse("Category Id required", { status: 400 });
+      return new NextResponse("Ctegory Id required", { status: 400 });
     }
-    if (!sizeIds) {
+    if (!sizeId) {
       return new NextResponse("Size Id is required", { status: 400 });
     }
     if (!colorId) {
@@ -93,6 +90,7 @@ export async function PATCH(
       data: {
         name,
         price,
+        sizeId,
         colorId,
         categoryId,
         images: {
@@ -123,11 +121,6 @@ export async function PATCH(
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { storeId: string; productId: string } }
-) {}
-
 export async function DELETE(
   req: Request,
   { params }: { params: { storeId: string; productId: string } }
@@ -152,30 +145,6 @@ export async function DELETE(
     if (!storeIdbyUser) {
       return new NextResponse("Unauthorized", { status: 403 });
     }
-
-    const findProductImage = await db.product.findUnique({
-      where: {
-        id: params.productId,
-        storeId: params.storeId,
-      },
-      select: {
-        images: true,
-      },
-    });
-
-    if (!findProductImage) {
-      return new NextResponse("Billboard not found", { status: 404 });
-    }
-
-    const images = findProductImage.images;
-
-    images.forEach((imageObject) => {
-      const url = imageObject.url;
-      const parts = url.split("/");
-      const identifierWithExtension = parts[parts.length - 1];
-      const identifier = identifierWithExtension.split(".")[0];
-      deleteCloudinaryImage({ publicId: identifier });
-    });
 
     const product = await db.product.deleteMany({
       where: {

@@ -12,7 +12,6 @@ const ProductPage = async ({
     },
     include: {
       images: true,
-      sizes: true,
     },
   });
 

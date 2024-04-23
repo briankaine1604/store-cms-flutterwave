@@ -8,12 +8,11 @@ import {
 import { ProductColumn } from "./columns";
 import { Button } from "@/components/ui/button";
 import { Copy, Delete, Edit, MoreHorizontal, Trash } from "lucide-react";
-
+import {toast} from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { useState } from "react";
 import { AlertModal } from "@/components/modals/alert-modal";
-import { toast } from "sonner";
 
 interface CellActionProps {
   data: ProductColumn;
