@@ -22,7 +22,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
         index="name"
         colors={["blue"]}
         valueFormatter={dataFormatter}
-        yAxisWidth={100}
+        yAxisWidth={80}
       />
     </>
   );

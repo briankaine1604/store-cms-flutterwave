@@ -9,6 +9,7 @@ import Sidebar from "@/components/sidebar";
 import { currentUser } from "@/hooks/use-current-user-server";
 import { redirect } from "next/navigation";
 import { ModalProvider } from "@/provider/modal-provider";
+import { ThemeProvider } from "@/provider/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,9 +29,16 @@ export default async function RootLayout({
     <SessionProvider session={session}>
       <html lang="en" className="antialiased">
         <body className={inter.className}>
-          <ModalProvider />
-          <div className="h-full w-full">{children}</div>
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ModalProvider />
+            <div className="h-full w-full ">{children}</div>
+            <Toaster />
+          </ThemeProvider>
         </body>
       </html>
     </SessionProvider>

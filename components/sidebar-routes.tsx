@@ -67,7 +67,7 @@ export const SidebarRoutes = () => {
         <Link
           href={`/${params.storeId}`}
           className={`${
-            pathname === `/${params.storeId}` ? "bg-slate-100" : ""
+            pathname === `/${params.storeId}` ? "bg-secondary" : ""
           } flex items-center gap-x-2 p-2 px-4 rounded-lg`}
         >
           <AreaChart className="h-4 w-4 text-blue-500" />
@@ -79,7 +79,7 @@ export const SidebarRoutes = () => {
           <Link
             href={`/${params.storeId}${nav.href}`}
             className={`flex items-center gap-x-2 p-2 px-4 rounded-lg ${
-              pathname.includes(nav.href) ? " bg-slate-100 " : ""
+              pathname.includes(nav.href) ? " bg-secondary " : ""
             }`}
           >
             <div>{nav.icon}</div>

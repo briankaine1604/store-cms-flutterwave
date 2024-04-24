@@ -1,12 +1,13 @@
 import { currentUserId } from "@/hooks/current-user-id";
-import { MainNav } from "./MainNav";
-import StoreSwitcher from "./store-switcher";
-import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { redirect } from "next/navigation";
+import { MainNav } from "./MainNav";
 import { MobileSidebar } from "./mobile-sidebar";
+import StoreSwitcher from "./store-switcher";
 
 const Navbar = async () => {
   const userId = await currentUserId();
+
   if (!userId) {
     redirect("/auth/login");
   }
@@ -17,7 +18,7 @@ const Navbar = async () => {
     },
   });
   return (
-    <nav className="p-3 px-5 text-xl font-semibold flex-no-wrap sticky top-0 border-b bg-white opacity-100 z-50 h-16 items-center">
+    <nav className="p-3 px-5 text-xl font-semibold flex-no-wrap sticky top-0 border-b bg-opacity-100 z-50 h-16 items-center bg-primary-foreground">
       <div className="max-w-7xl flex items-center mx-auto">
         <div className="z-50">
           <MobileSidebar />

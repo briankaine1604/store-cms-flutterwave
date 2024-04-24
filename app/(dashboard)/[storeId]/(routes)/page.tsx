@@ -24,7 +24,7 @@ const DashboardPage = async ({ params }: Props) => {
       <div className="flex-1 space-y-4 p-8 pt-4">
         <Heading title="Dashboard" description="Overview of your store" />
         <Separator />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="space-y-0 pb-2">
               <div className="flex justify-between">
@@ -32,7 +32,7 @@ const DashboardPage = async ({ params }: Props) => {
                 <TbCurrencyNaira className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
-            <CardContent className=" text-2xl font-bold">
+            <CardContent className="sm:text-2xl font-bold">
               {formatter.format(totalRevenue)}
             </CardContent>
           </Card>
@@ -43,7 +43,9 @@ const DashboardPage = async ({ params }: Props) => {
                 <CreditCard className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
-            <CardContent className=" text-2xl font-bold">+{count}</CardContent>
+            <CardContent className="sm:text-2xl font-bold">
+              +{count}
+            </CardContent>
           </Card>
           <Card>
             <CardHeader className="space-y-0 pb-2">
@@ -52,7 +54,9 @@ const DashboardPage = async ({ params }: Props) => {
                 <Package className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
-            <CardContent className=" text-2xl font-bold">+{stock}</CardContent>
+            <CardContent className="sm:text-2xl font-bold">
+              +{stock}
+            </CardContent>
           </Card>
         </div>
         <Card>
