@@ -30,7 +30,7 @@ const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
       .join(", "),
     totalPrice: formatter.format(
       item.orderItems.reduce((total, item) => {
-        return total + item.product?.price * item.quantity;
+        return total + Number(item.product?.price) * item.quantity;
       }, 0)
     ),
     createdAt: format(item.createdAt, "MMMM do, yyyy"),
