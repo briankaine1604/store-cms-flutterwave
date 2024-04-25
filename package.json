@@ -41,6 +41,7 @@
     "next-auth": "^5.0.0-beta.16",
     "next-cloudinary": "^6.4.1",
     "next-themes": "^0.3.0",
+    "prisma": "^5.13.0",
     "react": "^18",
     "react-color": "^2.19.3",
     "react-dom": "^18",
