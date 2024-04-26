@@ -40,13 +40,22 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   });
 };
 
-export const sendPaymentSuccessfulEmail = async (email: string) => {
+export const sendPaymentSuccessfulEmail = async (
+  email: string,
+  ref: string
+) => {
   try {
     await resend.emails.send({
       from: "Store@briankaine.com",
       to: email,
       subject: "Payment Successful",
-      html: "<p>Your payment was successful. Thank you for your purchase!</p>",
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 20px;">STORE</h1>
+      <p>Your payment was successful. Thank you for your purchase!</p>
+      <p> Your order reference is ${ref}</p>
+      </div>
+      `,
     });
     console.log(`Payment successful email sent to ${email}`);
   } catch (error) {

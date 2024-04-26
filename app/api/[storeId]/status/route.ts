@@ -45,7 +45,8 @@ export async function POST(
         },
       });
       const email = event.data.customer.email;
-      await sendPaymentSuccessfulEmail(email);
+      const ref = event.data.reference;
+      await sendPaymentSuccessfulEmail(email, ref);
       return new NextResponse("Payment successful", { status: 200 });
     case "charge.failure":
       // Handle failed payment

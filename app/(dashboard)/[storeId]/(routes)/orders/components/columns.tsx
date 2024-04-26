@@ -11,12 +11,22 @@ export type OrderColumn = {
   totalPrice: string;
   products: string;
   createdAt: string;
+  name: string;
+  ref: string;
 };
 
 export const columns: ColumnDef<OrderColumn>[] = [
   {
     accessorKey: "products",
     header: "Products",
+  },
+  {
+    accessorKey: "ref",
+    header: "Order reference",
+  },
+  {
+    accessorKey: "name",
+    header: "Customer name",
   },
   {
     accessorKey: "phone",
