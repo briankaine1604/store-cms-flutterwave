@@ -18,7 +18,7 @@ export const MainNav = () => {
         asChild
         className={cn(
           "rounded",
-          pathname === `/${params.storeId}/settings` && "bg-gray-200"
+          pathname === `/${params.storeId}/settings` && " bg-secondary/80"
         )}
       >
         <Link href={`/${params.storeId}/settings`}>

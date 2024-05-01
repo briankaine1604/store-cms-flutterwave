@@ -18,8 +18,12 @@ export async function GET(
       include: {
         images: true,
         color: true,
-        size: true,
         category: true,
+        sizes: {
+          include: {
+            size: true,
+          },
+        },
       },
     });
 
@@ -40,8 +44,10 @@ export async function PATCH(
     const {
       name,
       price,
-      sizeId,
+      sizes,
       colorId,
+      brand,
+      description,
       categoryId,
       images,
       isFeatured,
@@ -62,7 +68,7 @@ export async function PATCH(
     if (!categoryId) {
       return new NextResponse("Ctegory Id required", { status: 400 });
     }
-    if (!sizeId) {
+    if (!sizes) {
       return new NextResponse("Size Id is required", { status: 400 });
     }
     if (!colorId) {
@@ -90,8 +96,12 @@ export async function PATCH(
       data: {
         name,
         price,
-        sizeId,
+        sizes: {
+          deleteMany: {},
+        },
         colorId,
+        brand,
+        description,
         categoryId,
         images: {
           deleteMany: {},
@@ -100,6 +110,17 @@ export async function PATCH(
         isArchived,
       },
     });
+
+    const createdSizes = await Promise.all(
+      sizes.map(async (size: { sizeId: string }) => {
+        return db.productSizes.create({
+          data: {
+            productId: params.productId,
+            sizeId: size.sizeId,
+          },
+        });
+      })
+    );
 
     const product = await db.product.update({
       where: {
@@ -110,6 +131,9 @@ export async function PATCH(
           createMany: {
             data: [...images.map((image: { url: string }) => image)],
           },
+        },
+        sizes: {
+          connect: createdSizes.map((size) => ({ id: size.id })),
         },
       },
     });
@@ -145,6 +169,12 @@ export async function DELETE(
     if (!storeIdbyUser) {
       return new NextResponse("Unauthorized", { status: 403 });
     }
+
+    await db.productSizes.deleteMany({
+      where: {
+        productId: params.productId,
+      },
+    });
 
     const product = await db.product.deleteMany({
       where: {

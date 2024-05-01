@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 datasource db {
-  provider     = "postgres"
+  provider     = "mysql"
   url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
@@ -59,17 +59,6 @@ model Category{
   @@index([billboardId])
 }
 
-model Size {
-  id String @id @default(uuid())
-  storeId String
-  store Store @relation("StoreToSize", fields: [storeId], references: [id])
-  name String
-  value String
-  product Product[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@index([storeId])
-}
 
 model Color {
   id String @id @default(uuid())
@@ -91,23 +80,46 @@ model Product {
   category Category @relation("CategoryToProduct", fields: [categoryId], references: [id] )
   name String
   price Decimal
+  brand String
+  description String @db.Text
   isFeatured Boolean @default(false)
   isArchived Boolean @default(false)
   colorId String
-  size  Size @relation(fields: [sizeId], references: [id])
-  sizeId String 
-   color Color @relation(fields: [colorId], references: [id])
-   images Image[]
-   createdAt DateTime @default(now())
+  sizes  ProductSizes[]
+  color Color @relation(fields: [colorId], references: [id])
+  images Image[]
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orderItems OrderItem[] @relation()
 
-@@index([sizeId])
   @@index([storeId])
   @@index([categoryId])
    @@index([colorId])
 }
 
+
+model Size {
+  id String @id @default(uuid())
+  storeId String
+  store Store @relation("StoreToSize", fields: [storeId], references: [id])
+  name String
+  value String
+  product ProductSizes[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([storeId])
+}
+
+model ProductSizes{
+  id String @id @default(uuid())
+  productId String
+  product Product  @relation( fields: [productId], references: [id])
+  sizeId String
+  size Size  @relation( fields: [sizeId], references: [id])
+
+  @@index([productId])
+  @@index([sizeId])
+}
 
 model Image {
   id String @id @default(uuid())
@@ -144,9 +156,10 @@ model OrderItem{
   productId String?
   product Product? @relation(fields: [productId],references: [id])
   quantity Int
-
+  size String?
   @@index([orderId])
   @@index([productId])
+ 
 }
 
 enum UserRole{

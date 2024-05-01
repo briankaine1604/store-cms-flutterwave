@@ -12,10 +12,12 @@ export async function POST(
     const {
       name,
       price,
-      sizeId,
+      sizes,
       colorId,
       categoryId,
       images,
+      brand,
+      description,
       isFeatured,
       isArchived,
     } = body;
@@ -29,13 +31,16 @@ export async function POST(
     if (!price) {
       return new NextResponse("Price is required", { status: 400 });
     }
+    if (!price) {
+      return new NextResponse("Price is required", { status: 400 });
+    }
     if (!images || !images.length) {
       return new NextResponse("Image is required", { status: 400 });
     }
     if (!categoryId) {
       return new NextResponse("Ctegory Id required", { status: 400 });
     }
-    if (!sizeId) {
+    if (!sizes) {
       return new NextResponse("Size Id is required", { status: 400 });
     }
     if (!colorId) {
@@ -60,17 +65,39 @@ export async function POST(
       data: {
         name,
         price,
-        sizeId,
         categoryId,
         colorId,
         isArchived,
         isFeatured,
-
+        brand,
+        description,
         storeId: params.storeId,
         images: {
           createMany: {
             data: [...images.map((image: { url: string }) => image)],
           },
+        },
+      },
+    });
+
+    const productId = product.id;
+
+    const createdSizes = await Promise.all(
+      sizes.map(async (size: { sizeId: string }) => {
+        return db.productSizes.create({
+          data: {
+            productId,
+            sizeId: size.sizeId,
+          },
+        });
+      })
+    );
+
+    await db.product.update({
+      where: { id: productId },
+      data: {
+        sizes: {
+          connect: createdSizes.map((size) => ({ id: size.id })),
         },
       },
     });
@@ -89,8 +116,10 @@ export async function GET(
   try {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId") || undefined;
-    const sizeId = searchParams.get("sizeId") || undefined;
+    const sizes =
+      searchParams.getAll("sizeId").map((sizeId) => ({ sizeId })) || [];
     const colorId = searchParams.get("colorId") || undefined;
+    const brand = searchParams.get("brand") || undefined;
     const isFeatured = searchParams.get("isFeatured");
 
     if (!params.storeId) {
@@ -101,7 +130,6 @@ export async function GET(
       where: {
         storeId: params.storeId,
         categoryId,
-        sizeId,
         colorId,
         isFeatured: isFeatured ? true : undefined,
         isArchived: false,
@@ -110,7 +138,11 @@ export async function GET(
         images: true,
         category: true,
         color: true,
-        size: true,
+        sizes: {
+          include: {
+            size: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

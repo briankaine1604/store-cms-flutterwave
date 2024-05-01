@@ -1,10 +1,12 @@
 import { initializeTransaction } from "@/actions/paystack";
 import { db } from "@/lib/db";
+import { Size } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Products {
   productId: string;
   quantity: number;
+  selectedSize: String[];
 }
 
 const corsHeaders = {
@@ -33,6 +35,7 @@ export async function POST(
     select: {
       id: true,
       price: true,
+      sizes: true,
     },
   });
 
@@ -70,6 +73,7 @@ export async function POST(
           create: products.map((product: Products) => ({
             product: { connect: { id: product.productId } },
             quantity: product.quantity,
+            size: product.selectedSize[0],
           })),
         },
       },

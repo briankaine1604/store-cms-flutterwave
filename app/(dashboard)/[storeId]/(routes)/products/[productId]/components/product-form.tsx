@@ -22,9 +22,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { UseOrigin } from "@/hooks/use-origin";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Category, Color, Image, Product, Size } from "@prisma/client";
+import {
+  Category,
+  Color,
+  Image,
+  Product,
+  ProductSizes,
+  Size,
+} from "@prisma/client";
+import { Description } from "@radix-ui/react-dialog";
+
 import axios from "axios";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -34,7 +44,9 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 interface ProductFormProps {
-  initialData: (Product & { images: Image[] }) | null;
+  initialData:
+    | (Product & { images: Image[] } & { sizes: ProductSizes[] })
+    | null;
   colors: Color[];
   sizes: Size[];
   categories: Category[];
@@ -44,8 +56,12 @@ const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
   price: z.coerce.number().min(1),
+  description: z.string().refine((description) => description.length <= 65535, {
+    message: "Description is too long",
+  }),
+  brand: z.string().min(1),
   categoryId: z.string().min(1),
-  sizeId: z.string().min(1),
+  sizes: z.object({ productId: z.string(), sizeId: z.string() }).array(),
   colorId: z.string().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
@@ -79,7 +95,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
           price: 0,
           categoryId: "",
           colorId: "",
-          sizeId: "",
+          description: "",
+          brand: "",
+          sizes: [],
           isFeatured: false,
           isArchived: false,
         },
@@ -88,6 +106,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const { handleSubmit, control } = form;
 
   const onSubmit = async (data: ProductFormValues) => {
+    console.log("data", data);
     try {
       setIsLoading(true);
       if (initialData) {
@@ -98,7 +117,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       } else {
         await axios.post(`/api/${params.storeId}/products`, data);
       }
-      
+
       router.push(`/${params.storeId}/products`);
       router.refresh();
       toast.success(toastMessage);
@@ -240,38 +259,56 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-            <FormField
-              control={control}
-              name="sizeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  <Select
-                    disabled={isLoading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a size"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {sizes.map((size) => (
-                        <SelectItem key={size.id} value={size.id}>
-                          {size.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <div className="mb-4">
+                <FormLabel className="text-base">Sizes</FormLabel>
+                <FormDescription>
+                  Select the sizes you want for the product.
+                </FormDescription>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-y-2">
+                {sizes.map((size) => (
+                  <FormField
+                    key={size.id}
+                    control={control}
+                    name="sizes"
+                    render={({ field }) => (
+                      <FormItem
+                        key={size.id}
+                        className="flex items-center space-y-0 gap-x-1"
+                      >
+                        <FormLabel>{size.name}</FormLabel>
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.some(
+                              (value) => value.sizeId === size.id
+                            )}
+                            onCheckedChange={(checked) => {
+                              const isChecked = field.value.some(
+                                (value) => value.sizeId === size.id
+                              );
+                              if (checked && !isChecked) {
+                                field.onChange([
+                                  ...field.value,
+                                  { productId: "", sizeId: size.id },
+                                ]);
+                              } else if (!checked && isChecked) {
+                                field.onChange(
+                                  field.value.filter(
+                                    (value) => value.sizeId !== size.id
+                                  )
+                                );
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </FormItem>
             <FormField
               control={control}
               name="colorId"
@@ -300,6 +337,39 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="brand"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Brand</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={isLoading}
+                      placeholder="Product brand"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the product (add all technical info here)"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
