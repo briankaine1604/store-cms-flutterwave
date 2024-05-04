@@ -8,5 +8,5 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {});
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"], // every single route except the ones mentioned here will trigger middleware
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
